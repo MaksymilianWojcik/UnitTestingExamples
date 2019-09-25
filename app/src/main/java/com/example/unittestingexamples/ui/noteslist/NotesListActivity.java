@@ -1,10 +1,11 @@
-package com.example.unittestingexamples;
+package com.example.unittestingexamples.ui.noteslist;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
 import android.util.Log;
 
+import com.example.unittestingexamples.R;
 import com.example.unittestingexamples.repository.NoteRepository;
 
 import javax.inject.Inject;

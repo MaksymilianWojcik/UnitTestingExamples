@@ -1,6 +1,6 @@
 package com.example.unittestingexamples.di;
 
-import com.example.unittestingexamples.NotesListActivity;
+import com.example.unittestingexamples.ui.noteslist.NotesListActivity;
 
 import dagger.Module;
 import dagger.android.ContributesAndroidInjector;
