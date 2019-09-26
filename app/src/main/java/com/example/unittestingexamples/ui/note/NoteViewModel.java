@@ -10,11 +10,16 @@ import com.example.unittestingexamples.repository.NoteRepository;
 import com.example.unittestingexamples.ui.Resource;
 import com.example.unittestingexamples.utils.DateUtil;
 
+import org.reactivestreams.Subscription;
+
 import javax.inject.Inject;
+
+import io.reactivex.functions.Consumer;
 
 public class NoteViewModel extends ViewModel {
 
     private static final String TAG = "NoteViewModel";
+    public static final String NO_CONTENT_ERROR = "Can't save note with no content";
 
     public enum ViewState {VIEW, EDIT}
 
@@ -23,6 +28,8 @@ public class NoteViewModel extends ViewModel {
     private MutableLiveData<Note> note = new MutableLiveData<>();
     private MutableLiveData<ViewState> viewState = new MutableLiveData<>();
     private boolean isNewNote;
+    private Subscription updateSubscription;
+    private Subscription inserSubscription;
 
     @Inject
     public NoteViewModel(NoteRepository noteRepository) {
@@ -32,12 +39,26 @@ public class NoteViewModel extends ViewModel {
     public LiveData<Resource<Integer>> insertNote() throws Exception {
         return LiveDataReactiveStreams.fromPublisher(
                 noteRepository.insertNote(note.getValue()) //refernece to the one in livedata
+                .doOnSubscribe(new Consumer<Subscription>() {
+                    @Override
+                    public void accept(Subscription subscription) throws Exception {
+                        inserSubscription = subscription;
+                    }
+                })
         );
     }
 
-//    public LiveData<Resource<Integer>> updateNote() throws Exception {
-//
-//    }
+    public LiveData<Resource<Integer>> updateNote() throws Exception {
+        return LiveDataReactiveStreams.fromPublisher(
+                noteRepository.updateNote(note.getValue()) //refernece to the one in livedata
+                        .doOnSubscribe(new Consumer<Subscription>() {
+                            @Override
+                            public void accept(Subscription subscription) throws Exception {
+                                updateSubscription = updateSubscription;
+                            }
+                        })
+        );
+    }
 //
 //    public LiveData<Resource<Integer>> saveNote() throws Exception {
 //        // logic if to insert or update note
@@ -59,8 +80,39 @@ public class NoteViewModel extends ViewModel {
         this.isNewNote = isNewNote;
     }
 
-    public LiveData<Resource<Integer>> saveNote() {
-        return null; // here logic to decide if should insert note or update note
+    public LiveData<Resource<Integer>> saveNote() throws Exception {
+
+        if (!shouldAllowSave()){
+            throw new Exception(NO_CONTENT_ERROR);
+        }
+
+        cancelPendingTransactions();
+        // here logic to decide if should insert note or update note
+
+        return null;
+    }
+
+    private void cancelPendingTransactions(){
+        if(inserSubscription != null) {
+            cancelInsertTransaction();
+        }
+        if(inserSubscription != null) {
+            cancelUpdateTransaction();
+        }
+    }
+
+    private void cancelUpdateTransaction(){
+        updateSubscription.cancel();
+        updateSubscription = null;
+    }
+
+    private void cancelInsertTransaction(){
+        inserSubscription.cancel();
+        inserSubscription = null;
+    }
+
+    private boolean shouldAllowSave() {
+        return removeWhiteSpace(note.getValue().getContent()).length() > 0;
     }
 
     /***
