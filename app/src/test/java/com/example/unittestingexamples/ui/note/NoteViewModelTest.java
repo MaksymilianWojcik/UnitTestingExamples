@@ -20,6 +20,7 @@ import io.reactivex.Flowable;
 import io.reactivex.Single;
 import io.reactivex.internal.operators.single.SingleToFlowable;
 
+import static com.example.unittestingexamples.ui.note.NoteViewModel.NO_CONTENT_ERROR;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -80,7 +81,8 @@ public class NoteViewModelTest {
 
         // Act
         noteViewModel.setNote(note);
-        Resource<Integer> returnedValue = liveDataTestUtil.getValue(noteViewModel.insertNote()); // gives us note object
+        noteViewModel.setIsNewNote(true);
+        Resource<Integer> returnedValue = liveDataTestUtil.getValue(noteViewModel.saveNote()); // gives us note object
 
         // Assert
         assertEquals(Resource.success(insertedRow, NoteRepository.INSERT_SUCCESS), returnedValue);
@@ -130,7 +132,8 @@ public class NoteViewModelTest {
 
         // Act
         noteViewModel.setNote(note);
-        Resource<Integer> returnedValue = liveDataTestUtil.getValue(noteViewModel.updateNote()); // gives us note object
+        noteViewModel.setIsNewNote(false);
+        Resource<Integer> returnedValue = liveDataTestUtil.getValue(noteViewModel.saveNote());
 
         // Assert
         assertEquals(Resource.success(updatedRow, NoteRepository.UPDATE_SUCCESS), returnedValue);
@@ -147,6 +150,26 @@ public class NoteViewModelTest {
 
         // assert
         verify(noteRepository, never()).updateNote(note);
+    }
+
+
+    // testing the exception that save failed
+    @Test
+    void saveNote_shouldAllowSave_returnFalse() throws Exception {
+        Note note = new Note(TestUtil.TEST_NOTE_1);
+        note.setContent(null);
+
+        noteViewModel.setNote(note);
+        noteViewModel.setIsNewNote(true);
+
+        Exception exception = assertThrows(Exception.class, new Executable() {
+            @Override
+            public void execute() throws Throwable {
+                noteViewModel.saveNote();
+            }
+        });
+
+        assertEquals(NO_CONTENT_ERROR, exception.getMessage());
     }
 
 }
