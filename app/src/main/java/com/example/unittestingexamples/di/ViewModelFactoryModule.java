@@ -25,6 +25,6 @@ public abstract class ViewModelFactoryModule {
     @Binds
     @IntoMap
     @ViewModelKey(NotesListViewModel.class)
-    public abstract ViewModel bindNoteViewModel(NotesListViewModel notesListViewModel);
+    public abstract ViewModel bindNotesListViewModel(NotesListViewModel notesListViewModel);
 
 }
