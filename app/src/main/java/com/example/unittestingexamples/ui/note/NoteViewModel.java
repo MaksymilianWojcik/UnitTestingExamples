@@ -59,10 +59,6 @@ public class NoteViewModel extends ViewModel {
                         })
         );
     }
-//
-//    public LiveData<Resource<Integer>> saveNote() throws Exception {
-//        // logic if to insert or update note
-//    }
 
     public LiveData<Note> observeNote() {
         return note;
@@ -89,7 +85,38 @@ public class NoteViewModel extends ViewModel {
         cancelPendingTransactions();
         // here logic to decide if should insert note or update note
 
-        return null;
+        return new NoteInsertUpdateHelper<Integer>() {
+
+            @Override
+            public void setNoteId(int noteId) {
+                isNewNote = false;
+                Note currentNote = note.getValue();
+                currentNote.setId(noteId);
+                note.setValue(currentNote);
+            }
+
+            @Override
+            public LiveData<Resource<Integer>> getAction() throws Exception {
+                if(isNewNote) {
+                    return insertNote();
+                }
+                return updateNote();
+            }
+
+            @Override
+            public String defineAction() {
+                if(isNewNote) {
+                    return NoteInsertUpdateHelper.ACTION_INSERT;
+                }
+                return NoteInsertUpdateHelper.ACTION_UPDATE;
+            }
+
+            @Override
+            public void onTransactionComplete() {
+                updateSubscription = null;
+                inserSubscription = null;
+            }
+        }.getAsLiveData();
     }
 
     private void cancelPendingTransactions(){
