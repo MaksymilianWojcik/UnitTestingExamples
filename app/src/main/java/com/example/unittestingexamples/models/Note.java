@@ -131,13 +131,15 @@ public class Note implements Parcelable {
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Note note = (Note) o;
-        return id == note.id &&
-                title.equals(note.title) &&
-                content.equals(note.content);
+    public boolean equals(Object obj) {
+        if(obj == null){
+            return false;
+        }
+        if(getClass() != obj.getClass()){
+            return false;
+        }
+        Note note = (Note) obj;
+        return note.getId() == getId() && note.getTitle().equals(getTitle()) && note.getContent().equals(getContent());
     }
 
 }
